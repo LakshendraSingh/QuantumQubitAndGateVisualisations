@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qubit &amp; Circuit Visualizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" id="brandMark"></span>
+    <span class="brand-text">Qubit<span class="brand-accent">&amp;</span>Circuit<br>Visualizer</span>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="basics">Qubit Basics</button>
+    <button class="tab-btn" data-tab="library">Gate Library</button>
+    <button class="tab-btn" data-tab="builder">Circuit Builder</button>
+  </nav>
+  <div class="conn-status" id="connStatus">
+    <span class="dot" id="connDot"></span><span id="connText">checking backend…</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ======================= QUBIT BASICS ======================= -->
+  <section id="tab-basics" class="tab-panel active">
+    <div class="basics-grid">
+
+      <div class="panel gate-rail">
+        <h2>Apply a gate</h2>
+        <p class="hint">Start from |0&gt; and build up a sequence. Each click applies one gate.</p>
+        <div class="gate-buttons" id="basicGateButtons"></div>
+
+        <div class="theta-control" id="thetaControl" hidden>
+          <label for="thetaSlider">θ = <span id="thetaValue">0.00</span> rad</label>
+          <input type="range" id="thetaSlider" min="0" max="6.283" step="0.01" value="1.5708">
+          <button class="btn-mini" id="applyThetaBtn">Apply</button>
+        </div>
+
+        <div class="rail-actions">
+          <button class="btn-secondary" id="undoBtn">Undo last</button>
+          <button class="btn-secondary" id="resetBtn">Reset to |0&gt;</button>
+        </div>
+
+        <h3>Sequence so far</h3>
+        <ol class="step-list" id="stepList"><li class="empty">— none yet —</li></ol>
+      </div>
+
+      <div class="panel bloch-panel">
+        <div class="bloch-header">
+          <div>
+            <h2>Bloch Sphere</h2>
+            <p class="hint">Hilbert space geometric representation. Drag to orbit, scroll to zoom.</p>
+          </div>
+          <div class="bloch-view-controls">
+            <button type="button" class="btn-view active" id="viewIsoBtn" title="Isometric 3D Perspective">3D</button>
+            <button type="button" class="btn-view" id="viewTopBtn" title="Top Phase Plane (Look at +Z)">Top</button>
+            <button type="button" class="btn-view" id="viewFrontBtn" title="Front Plane (+X)">Front</button>
+            <button type="button" class="btn-view active" id="viewSpinBtn" title="Toggle Smooth Rotation">Spin</button>
+            <button type="button" class="btn-view" id="viewExpandBtn" title="Toggle Expanded Laboratory View">⛶ Expand</button>
+          </div>
+        </div>
+        <div class="bloch-canvas-wrap" id="blochBasicsWrap">
+          <div class="bloch-hud-badge" id="blochHudBadge">
+            <span class="hud-pulse-dot"></span>
+            <span id="blochHudState">|0⟩ Ground State</span>
+          </div>
+        </div>
+        <div class="bloch-metrics-bar">
+          <div class="metric-pill" id="blochBasicsReadout">
+            <span class="m-label">Cartesian:</span> x = 0.000 &nbsp; y = 0.000 &nbsp; z = 1.000
+          </div>
+          <div class="metric-pill" id="blochAnglesReadout">
+            <span class="m-label">Spherical:</span> θ = 0.0° &nbsp; φ = 0.0° &nbsp; |r| = 1.00
+          </div>
+        </div>
+      </div>
+
+      <div class="panel state-panel">
+        <h2>State</h2>
+        <div class="ket-display" id="ketDisplay">|ψ⟩ = 1·|0⟩ + 0·|1⟩</div>
+
+        <h3>Probabilities</h3>
+        <div class="prob-bars" id="probBars"></div>
+
+        <h3>Combined matrix (all gates so far)</h3>
+        <div class="matrix-box" id="combinedMatrix"></div>
+
+        <h3>Last gate matrix</h3>
+        <div class="matrix-box" id="lastGateMatrix"><span class="hint">— apply a gate —</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================= GATE LIBRARY ======================= -->
+  <section id="tab-library" class="tab-panel">
+    <div class="library-intro">
+      <h2>Gate reference</h2>
+      <p class="hint">Every gate below is a unitary matrix. Single-qubit gates act on a 2-dimensional Hilbert space; two-qubit gates act on the 4-dimensional joint space of a qubit pair.</p>
+    </div>
+    <div class="gate-cards" id="gateCards"></div>
+  </section>
+
+  <!-- ======================= CIRCUIT BUILDER ======================= -->
+  <section id="tab-builder" class="tab-panel">
+
+    <div class="builder-toolbar panel">
+      <div class="toolbar-group">
+        <label for="numQubits">Qubits</label>
+        <select id="numQubits">
+          <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option>
+        </select>
+      </div>
+      <div class="toolbar-group">
+        <label for="numSteps">Time steps</label>
+        <select id="numSteps">
+          <option>4</option><option selected>6</option><option>8</option><option>10</option>
+        </select>
+      </div>
+      <div class="toolbar-group presets-group">
+        <label>Presets:</label>
+        <button type="button" class="btn-preset" data-preset="bell">Bell State (|Φ⁺⟩)</button>
+        <button type="button" class="btn-preset" data-preset="ghz">GHZ State</button>
+        <button type="button" class="btn-preset" data-preset="super">Superposition</button>
+        <button type="button" class="btn-preset" data-preset="swap">SWAP Test</button>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn-secondary" id="clearCircuitBtn">Clear</button>
+        <button class="btn-primary" id="runCircuitBtn">Run circuit</button>
+      </div>
+    </div>
+
+    <div class="builder-body">
+      <div class="palette panel" id="builderPalette">
+        <h3>Gates</h3>
+        <p class="palette-subtext">Click or drag to place</p>
+        <div class="palette-chips" id="paletteChips"></div>
+      </div>
+
+      <div class="circuit-panel panel">
+        <div class="circuit-stats-bar" id="circuitStatsBar">
+          <div class="stat-pill"><span class="stat-lbl">DEPTH</span><span class="stat-val highlight" id="liveDepth">0</span></div>
+          <div class="stat-pill"><span class="stat-lbl">SIZE</span><span class="stat-val" id="liveSize">0 gates</span></div>
+          <div class="stat-pill"><span class="stat-lbl">WIDTH</span><span class="stat-val" id="liveWidth">2 qubits</span></div>
+          <div class="stat-pill"><span class="stat-lbl">2Q ENTANGLING</span><span class="stat-val" id="live2Q">0</span></div>
+          <div class="stat-pill"><span class="stat-lbl">1Q SINGLE</span><span class="stat-val" id="live1Q">0</span></div>
+          <div class="stat-pill"><span class="stat-lbl">DENSITY</span><span class="stat-val" id="liveDensity">0%</span></div>
+        </div>
+        <div class="circuit-scroll">
+          <div id="circuitGrid" class="circuit-grid"></div>
+        </div>
+        <div class="pending-note" id="pendingNote" hidden></div>
+      </div>
+    </div>
+
+    <div class="results panel" id="builderResults" hidden>
+      <div class="results-header-row">
+        <h2>Simulation Result</h2>
+        <div class="results-quick-stats" id="resultsQuickStats"></div>
+      </div>
+      <div class="circuit-metrics-banner" id="circuitMetricsBanner"></div>
+
+      <div class="results-grid">
+        <div class="results-col">
+          <h3>State vector</h3>
+          <div class="ket-display" id="circuitKet"></div>
+          <h3>Basis probabilities</h3>
+          <div class="prob-bars wide" id="circuitProbBars"></div>
+          <h3>Simulated measurement (1024 shots)</h3>
+          <div class="prob-bars wide" id="circuitCounts"></div>
+        </div>
+
+        <div class="results-col">
+          <h3>Per-qubit Bloch spheres</h3>
+          <p class="hint">When a qubit is entangled with the rest of the circuit, its reduced state sits <em>inside</em> the sphere, not on the surface — the arrow shrinks. That shrinkage is the visual signature of entanglement.</p>
+          <div class="bloch-row" id="circuitBlochRow"></div>
+        </div>
+
+        <div class="results-col wide-col">
+          <h3>Circuit diagram</h3>
+          <pre class="circuit-text" id="circuitText"></pre>
+          <h3>Full unitary matrix</h3>
+          <div class="matrix-box scrollable" id="circuitUnitary"></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- Three.js with robust fallback CDNs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  if (!window.THREE) {
+    document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\\/script>');
+  }
+</script>
+<script>
+  if (!window.THREE) {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\\/script>');
+  }
+</script>
+<script src="app.js"></script>
+</body>
+</html>
