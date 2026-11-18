@@ -10,25 +10,32 @@ The frontend is a static HTML/CSS/JS page (uses [three.js](https://threejs.org/)
 
 ## Running it
 
-**1. Start the backend**
+### Windows (One Shot)
 
+Just double-click **`run.bat`** (or in terminal: `.\run.bat` / `.\run.ps1`):
+- Automatically finds Python and creates a Windows virtual environment (`venv`).
+- Installs `qiskit`, `numpy`, and `flask` if not already installed.
+- Launches the server and automatically opens your browser to **http://localhost:5001**.
+
+You can also run directly from PowerShell or Command Prompt:
+```powershell
+python app.py
+```
+*(If dependencies or virtualenv are missing, `app.py` will automatically create `venv` and install them on the first run).*
+
+### macOS / Linux
+
+From the project root:
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate        # on Windows: venv\Scripts\activate
-pip install -r requirements.txt
+python app.py
+```
+Or manually:
+```bash
+source venv/bin/activate
 python app.py
 ```
 
-This starts the server on `http://localhost:5001` (using port 5001 avoids port 5000 conflicts with macOS AirPlay Receiver). Leave it running.
-
-**2. Open the app**
-
-Simply open your browser to:
-
-👉 **[http://localhost:5001](http://localhost:5001)**
-
-The Flask backend now serves both the API and the interactive HTML visualizer directly.
+This starts the server on `http://localhost:5001` (using port 5001 avoids port 5000 conflicts with macOS AirPlay Receiver). Open **[http://localhost:5001](http://localhost:5001)** in your browser.
 
 *(Alternative)* You can also still open `frontend/index.html` directly (double-click it or `open frontend/index.html`). The frontend will automatically detect and connect to the backend running on port 5001.
 
